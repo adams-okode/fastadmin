@@ -11,7 +11,7 @@ class Settings:
     ADMIN_PREFIX: str = os.getenv("ADMIN_PREFIX", "admin")
 
     # This value is the site name on sign-in page and on header.
-    ADMIN_SITE_NAME: str = os.getenv("ADMIN_SITE_NAME", "FastAdmin")
+    ADMIN_SITE_NAME: str = os.getenv("ADMIN_SITE_NAME", "Admin")
 
     # This value is the logo path on sign-in page.
     ADMIN_SITE_SIGN_IN_LOGO: str = os.getenv("ADMIN_SITE_SIGN_IN_LOGO", "/admin/static/images/sign-in-logo.svg")

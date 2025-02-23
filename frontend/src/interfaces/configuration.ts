@@ -86,6 +86,7 @@ interface IBaseModel {
   name: string;
   permissions: EModelPermission[];
   actions: IModelAction[];
+  category?: string;
   actions_on_top?: boolean;
   actions_on_bottom?: boolean;
   actions_selection_counter?: boolean;

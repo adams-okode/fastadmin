@@ -20,6 +20,9 @@ class BaseModelAdmin:
     # Use it only if you use several orms in your project.
     model_name_prefix: str | None = None
 
+    # Grouping the models into categories
+    category: str | None = None
+
     # A list of actions to make available on the change list page.
     # You have to implement methods with names like action_name in your ModelAdmin class and decorate them with @action decorator.
     # Example of usage:

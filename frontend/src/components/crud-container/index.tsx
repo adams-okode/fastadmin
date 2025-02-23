@@ -100,6 +100,56 @@ export const CrudContainer: React.FC<ICrudContainer> = ({
     }
   };
 
+  const uniqueCategories = [
+    ...new Set(configuration.models.map((item) => item.category)),
+  ];
+
+  function toTitleCase(str: string) {
+    return str.replace(
+      /\b\w+/g,
+      (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+    );
+  }
+
+  const generateCategoriesItems = (category: string | undefined) =>
+    category === undefined
+      ? configuration.models
+          .filter(
+            (m: IModel) =>
+              !search ||
+              m.name.toLocaleLowerCase().includes(search?.toLocaleLowerCase()),
+          )
+          .map((m: IModel) => {
+            return {
+              key: m.name,
+              label: getTitleFromModel(m),
+            };
+          })
+      : [
+          {
+            key: category.toLocaleLowerCase(),
+            label: _t(toTitleCase(category)),
+            children: configuration.models
+              .filter(
+                (m: IModel) =>
+                  !search ||
+                  m.name
+                    .toLocaleLowerCase()
+                    .includes(search?.toLocaleLowerCase()),
+              )
+              .map((m: IModel) => {
+                return {
+                  key: m.name,
+                  label: getTitleFromModel(m),
+                };
+              }),
+          },
+          {
+            key: "divider",
+            type: "divider",
+          },
+        ];
+
   const items = [
     {
       key: "dashboard",
@@ -109,18 +159,7 @@ export const CrudContainer: React.FC<ICrudContainer> = ({
       key: "divider",
       type: "divider",
     },
-    ...configuration.models
-      .filter(
-        (m: IModel) =>
-          !search ||
-          m.name.toLocaleLowerCase().includes(search?.toLocaleLowerCase()),
-      )
-      .map((m: IModel) => {
-        return {
-          key: m.name,
-          label: getTitleFromModel(m),
-        };
-      }),
+    ...uniqueCategories.map((category) => generateCategoriesItems(category)),
   ];
 
   const onSearch = (e: any) => setSearch(e.target.value);
