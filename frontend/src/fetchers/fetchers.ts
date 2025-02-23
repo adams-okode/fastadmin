@@ -5,7 +5,7 @@ const requestOptions = () => {
 };
 
 const instance = axios.create({
-  baseURL: (window as any).SERVER_URL,
+  baseURL: "http://localhost:8001/admin/api",
   ...requestOptions(),
 });
 

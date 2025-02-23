@@ -237,6 +237,7 @@ async def generate_models_schema(
             models_schemas.append(
                 ModelSchema(
                     name=model_name,
+                    category=admin_model_obj.category,
                     permissions=permissions,
                     actions=actions,
                     actions_on_top=admin_model_obj.actions_on_top,
@@ -281,6 +282,7 @@ async def generate_models_schema(
                     name=model_name,
                     permissions=permissions,
                     actions=actions,
+                    category=admin_model_obj.category,
                     actions_on_top=admin_model_obj.actions_on_top,
                     actions_on_bottom=admin_model_obj.actions_on_bottom,
                     actions_selection_counter=admin_model_obj.actions_selection_counter,

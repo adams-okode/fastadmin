@@ -110,6 +110,7 @@ class BaseModelSchema:
     name: str
     permissions: Sequence[ModelPermission]
     actions: Sequence[ModelAction]
+    category: str | None
     actions_on_top: bool | None
     actions_on_bottom: bool | None
     actions_selection_counter: bool | None

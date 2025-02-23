@@ -1,14 +1,15 @@
 import {
-  BarsOutlined,
   LinkOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
   SearchOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import { useMutation } from "@tanstack/react-query";
 import {
+  Button,
   Card,
   Col,
-  Image,
   Input,
   Layout,
   Menu,
@@ -30,6 +31,7 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import type { IModel } from "@/interfaces/configuration";
 import { ConfigurationContext } from "@/providers/ConfigurationProvider";
 import { SignInUserContext } from "@/providers/SignInUserProvider";
+import { Content } from "antd/es/layout/layout";
 
 const { Header, Sider } = Layout;
 const { Title } = Typography;
@@ -56,6 +58,7 @@ export const CrudContainer: React.FC<ICrudContainer> = ({
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [search, setSearch] = useState<string | undefined>();
+  const [collapsed, setCollapsed] = useState(false);
   const { model } = useParams();
   const { configuration } = useContext(ConfigurationContext);
   const { signedInUser, signedInUserRefetch, signedIn } =
@@ -63,7 +66,7 @@ export const CrudContainer: React.FC<ICrudContainer> = ({
   const { t: _t } = useTranslation("CrudContainer");
 
   const {
-    token: { colorBgContainer, colorPrimary },
+    token: { colorBgContainer, colorPrimary, borderRadiusLG },
   } = theme.useToken();
 
   useEffect(() => {
@@ -101,7 +104,11 @@ export const CrudContainer: React.FC<ICrudContainer> = ({
   };
 
   const uniqueCategories = [
-    ...new Set(configuration.models.map((item) => item.category)),
+    ...new Set(
+      configuration.models
+        .map((item) => item.category)
+        .filter((category): category is string => category !== undefined),
+    ),
   ];
 
   function toTitleCase(str: string) {
@@ -111,44 +118,36 @@ export const CrudContainer: React.FC<ICrudContainer> = ({
     );
   }
 
-  const generateCategoriesItems = (category: string | undefined) =>
-    category === undefined
-      ? configuration.models
-          .filter(
-            (m: IModel) =>
-              !search ||
-              m.name.toLocaleLowerCase().includes(search?.toLocaleLowerCase()),
-          )
-          .map((m: IModel) => {
-            return {
-              key: m.name,
-              label: getTitleFromModel(m),
-            };
-          })
-      : [
-          {
-            key: category.toLocaleLowerCase(),
-            label: _t(toTitleCase(category)),
-            children: configuration.models
-              .filter(
-                (m: IModel) =>
-                  !search ||
-                  m.name
-                    .toLocaleLowerCase()
-                    .includes(search?.toLocaleLowerCase()),
-              )
-              .map((m: IModel) => {
-                return {
-                  key: m.name,
-                  label: getTitleFromModel(m),
-                };
-              }),
-          },
-          {
-            key: "divider",
-            type: "divider",
-          },
-        ];
+  const generateCategoriesItems = (category?: string) => {
+    const children = configuration.models
+      .filter((m: IModel) => {
+        const isCategoryMatch = category === m.category?.toLowerCase();
+        const isSearchMatch =
+          !search || m.name.toLowerCase().includes(search.toLowerCase());
+        return isCategoryMatch && isSearchMatch;
+      })
+      .map((m: IModel) => ({
+        key: m.name,
+        label: getTitleFromModel(m),
+      }));
+
+    if (!category) {
+      return children;
+    }
+
+    return [
+      {
+        key: category.toLocaleLowerCase(),
+        label: _t(toTitleCase(category)),
+        children,
+      },
+      {
+        key: `${category}-divider`,
+        type: "divider",
+        label: "",
+      },
+    ];
+  };
 
   const items = [
     {
@@ -159,7 +158,9 @@ export const CrudContainer: React.FC<ICrudContainer> = ({
       key: "divider",
       type: "divider",
     },
-    ...uniqueCategories.map((category) => generateCategoriesItems(category)),
+    ...uniqueCategories.flatMap((category) =>
+      generateCategoriesItems(category.toLocaleLowerCase()),
+    ),
   ];
 
   const onSearch = (e: any) => setSearch(e.target.value);
@@ -169,121 +170,139 @@ export const CrudContainer: React.FC<ICrudContainer> = ({
       <Helmet defaultTitle={title}>
         <meta name="description" content={title} />
       </Helmet>
-      <Layout style={{ minHeight: "100vh" }}>
-        <Header style={{ background: colorPrimary, paddingInline: 20 }}>
-          <Row justify="space-between">
-            <Col>
-              <Space>
-                {isMobile && (
+      <Layout style={{ maxHeight: "100vh" }}>
+        <Sider
+          width={200}
+          trigger={null}
+          theme="dark"
+          collapsible
+          collapsed={collapsed}
+          style={{ borderRadius: 0, minHeight: "100vh" }}
+        >
+          <div style={{ padding: 10 }}>
+            <Input
+              value={search}
+              onChange={onSearch}
+              placeholder={_t("Search By Menu") as string}
+              prefix={<SearchOutlined />}
+            />
+          </div>
+
+          <Menu
+            mode="inline"
+            theme="dark"
+            defaultSelectedKeys={[model || "dashboard"]}
+            style={{
+              borderRight: 0,
+              //   overflowY: "scroll",
+            }}
+            items={items as any}
+            onClick={onClickSideBarMenuItem}
+          />
+        </Sider>
+
+        <Layout>
+          <Header
+            style={{
+              background: "#FFFFFF",
+              paddingInline: 20,
+              boxShadow:
+                "box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);",
+              borderBottom: "1px solid rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            <Row justify="space-between">
+              <Col>
+                <Space>
+                  <Row>
+                    <Col>
+                      <Button
+                        type="text"
+                        icon={
+                          collapsed ? (
+                            <MenuUnfoldOutlined />
+                          ) : (
+                            <MenuFoldOutlined />
+                          )
+                        }
+                        onClick={() => setCollapsed(!collapsed)}
+                        style={{
+                          fontSize: "20px",
+                          width: 64,
+                          height: 64,
+                        }}
+                      />
+                    </Col>
+                    <Col>
+                      <Link to="/">
+                        <span
+                          style={{
+                            color: colorBgContainer,
+                            fontSize: 18,
+                            marginLeft: 10,
+                          }}
+                        >
+                          {configuration.site_name}
+                        </span>
+                      </Link>
+                    </Col>
+                  </Row>
+                </Space>
+              </Col>
+              <Col>
+                <Space>
+                  {!isMobile && (
+                    <span style={{ color: "#010101", marginRight: 5 }}>
+                      {
+                        (signedInUser || ({} as any))[
+                          configuration.username_field
+                        ]
+                      }
+                    </span>
+                  )}
+
                   <Menu
                     style={{ background: colorPrimary }}
                     theme="light"
                     mode="horizontal"
-                    defaultSelectedKeys={[model || "dashboard"]}
                     items={[
                       {
                         key: signedInUser?.id || "key",
                         icon: (
-                          <BarsOutlined style={{ color: colorBgContainer }} />
+                          <UserOutlined style={{ color: colorBgContainer }} />
                         ),
-                        children: items as any,
+                        children: [
+                          {
+                            key: "sign-out",
+                            label: _t("Sign Out"),
+                          },
+                        ],
                       },
                     ]}
-                    onClick={onClickSideBarMenuItem}
+                    onClick={onClickRightMenuItem}
                   />
-                )}
+                </Space>
+              </Col>
+            </Row>
+          </Header>
 
-                <Link to="/">
-                  <Image
-                    src={
-                      (window as any).SERVER_DOMAIN +
-                      configuration.site_header_logo
-                    }
-                    preview={false}
-                    height={32}
-                    alt={configuration.site_name}
-                    style={{ marginTop: -2 }}
-                  />
-                </Link>
-
-                {!isMobile && (
-                  <Link to="/">
-                    <span
-                      style={{
-                        color: colorBgContainer,
-                        fontSize: 18,
-                        marginLeft: 10,
-                      }}
-                    >
-                      {configuration.site_name}
-                    </span>
-                  </Link>
-                )}
-              </Space>
-            </Col>
-            <Col>
-              <Space>
-                {!isMobile && (
-                  <span style={{ color: colorBgContainer, marginRight: 5 }}>
-                    {
-                      (signedInUser || ({} as any))[
-                        configuration.username_field
-                      ]
-                    }
-                  </span>
-                )}
-
-                <Menu
-                  style={{ background: colorPrimary }}
-                  theme="light"
-                  mode="horizontal"
-                  items={[
-                    {
-                      key: signedInUser?.id || "key",
-                      icon: (
-                        <UserOutlined style={{ color: colorBgContainer }} />
-                      ),
-                      children: [
-                        {
-                          key: "sign-out",
-                          label: _t("Sign Out"),
-                        },
-                      ],
-                    },
-                  ]}
-                  onClick={onClickRightMenuItem}
-                />
-              </Space>
-            </Col>
-          </Row>
-        </Header>
-        <Layout>
-          {!isMobile && (
-            <Sider style={{ background: colorBgContainer, borderRadius: 8 }}>
-              <div style={{ padding: 10 }}>
-                <Input
-                  value={search}
-                  onChange={onSearch}
-                  placeholder={_t("Search By Menu") as string}
-                  prefix={<SearchOutlined />}
-                />
-              </div>
-              <Menu
-                mode="inline"
-                theme="light"
-                defaultSelectedKeys={[model || "dashboard"]}
-                style={{
-                  borderRight: 0,
-                  overflowY: "scroll",
-                }}
-                items={items as any}
-                onClick={onClickSideBarMenuItem}
-              />
-            </Sider>
-          )}
-          <Layout style={{ padding: 16 }}>
-            <Row justify="space-between">
-              <Col>{breadcrumbs}</Col>
+          <Content
+            style={{
+              padding: 24,
+              margin: 0,
+              minHeight: 280,
+              background: colorBgContainer,
+              borderRadius: borderRadiusLG,
+            }}
+          >
+            <div
+              style={{
+                border: "solid 1px rgb(201, 201, 201)",
+                borderRadius: 5,
+                padding: 10,
+              }}
+            >
+              {breadcrumbs}
               {viewOnSite && (
                 <Col>
                   <a href={viewOnSite} target="_blank" rel="noreferrer">
@@ -291,7 +310,7 @@ export const CrudContainer: React.FC<ICrudContainer> = ({
                   </a>
                 </Col>
               )}
-            </Row>
+            </div>
             <Card
               title={
                 <Row justify="space-between">
@@ -314,7 +333,7 @@ export const CrudContainer: React.FC<ICrudContainer> = ({
                 ) : null}
               </Skeleton>
             </Card>
-          </Layout>
+          </Content>
         </Layout>
       </Layout>
     </>

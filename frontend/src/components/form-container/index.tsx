@@ -248,9 +248,16 @@ export const FormContainer: React.FC<IFormContainer> = ({
   return (
     <Form
       initialValues={initialValues}
-      layout="vertical"
+      colon={true}
+      variant="filled"
+      layout="horizontal"
       form={form}
       onFinish={onFinish}
+      style={{
+        overflowY: "scroll",
+        overflowX: "clip",
+        maxHeight: "calc(100vh - 300px)",
+      }}
     >
       {modelConfiguration?.save_on_top && (
         <>
